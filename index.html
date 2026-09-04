@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chapter 13 — Motion of a Point — Tree</title>
+<style>
+  :root{
+    --navy:#002855; --gold:#c99400; --goldbg:#fff6de;
+    --blue:#0f5fae; --bluebg:#eaf2fb;
+    --orange:#b5501c; --orangebg:#fdf1e6;
+    --purple:#5b3a91; --purplebg:#f2ecfa;
+    --ink:#14213a; --gray:#5f7084; --line:#8a96a8; --page:#f3f5f8; --topgold:#ffcc00;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,system-ui,sans-serif}
+  header{background:var(--navy);color:#fff;padding:18px clamp(14px,3vw,36px);border-top:6px solid var(--topgold)}
+  header h1{margin:0;font-size:clamp(18px,2.6vw,26px);font-weight:700}
+  header p{margin:5px 0 0;color:#cfe0ef;font-size:13.5px}
+  header .author{margin:8px 0 2px;color:var(--topgold);font-size:clamp(17px,2.1vw,23px);font-weight:700;
+                 letter-spacing:.01em}
+  header .book{float:right;font-size:11.5px;font-style:italic;color:#a9cbd0}
+
+  .legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;background:#fff;border-bottom:1px solid #dfe4ea;
+          padding:8px 14px;font-size:12px;color:var(--gray);position:sticky;top:0;z-index:50}
+  .legend .sw{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+  .legend .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+  .export-tools{max-width:980px;margin:18px auto 0;padding:14px 16px;background:#fff;border:1px solid #d7dee8;
+                border-radius:10px;box-shadow:0 2px 6px rgba(0,20,50,.06)}
+  .export-tools .export-title{font-weight:700;color:var(--navy);font-size:13px;margin-bottom:10px}
+  .export-fields{display:grid;grid-template-columns:minmax(190px,1fr) minmax(150px,.7fr) auto;gap:10px;align-items:end}
+  .export-fields label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:var(--gray)}
+  .export-fields input{min-height:42px;border:1px solid #aeb9c7;border-radius:7px;padding:9px 10px;font:inherit;color:var(--ink)}
+  .export-fields input:focus{outline:3px solid rgba(15,95,174,.22);border-color:var(--blue)}
+  .export-fields button{min-height:42px;border:0;border-radius:7px;padding:9px 14px;font:700 12px Arial,sans-serif;
+                        cursor:pointer;color:#fff;background:var(--navy)}
+  .export-fields button.secondary{background:var(--blue)}
+  .export-fields button:hover{filter:brightness(1.08)}
+  .export-fields button:focus-visible{outline:3px solid rgba(15,95,174,.3);outline-offset:2px}
+  .export-error{min-height:18px;margin-top:7px;color:#a32626;font-size:11px;font-weight:700}
+  .export-meta{display:none;max-width:900px;margin:14px auto 0;padding:8px 16px;text-align:center;font-size:12px;
+               font-weight:700;color:var(--navy);border:1px solid #c6d2df;border-radius:7px;background:#fff}
+  .export-meta:empty{display:none !important}
+  body.exporting .export-tools{display:none}
+  body.exporting .export-meta{display:block}
+
+  #stage{position:relative;max-width:1900px;margin:0 auto;padding:0 16px 10px}
+  svg#connectors{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible}
+  svg#connectors path{fill:none;stroke:var(--line);stroke-width:2}
+
+  /* every tree depth is its own independent, full-width row: a wide subtree below
+     never widens or shifts the levels above it */
+  .level{position:relative;z-index:1;display:flex;flex-direction:row;justify-content:center;
+         align-items:flex-start;gap:20px;flex-wrap:wrap;width:100%;margin-top:34px}
+  .level:first-of-type{margin-top:26px}
+
+  .subtree-layout{display:grid;grid-template-columns:minmax(0,45fr) minmax(0,55fr);gap:32px;
+                  align-items:start;width:100%;margin-top:34px;position:relative;z-index:1}
+  .subtree{min-width:0;display:flex;flex-direction:column;align-items:center}
+  .subtree > .node{margin-bottom:34px}
+  .straight-grid{display:block;width:100%;margin:0}
+  .straight-row{display:contents}
+  .straight-main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:100%}
+  .acceleration-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;width:100%;margin-top:34px}
+  .accel-column{min-width:0;display:flex;flex-direction:column;align-items:stretch}
+  .accel-column > .node{width:100%;margin-bottom:18px}
+  .vertical-children{position:relative;display:flex;flex-direction:column;gap:12px;margin-left:18px;padding-left:18px;
+                     border-left:2px solid var(--line)}
+  .vertical-children::before{content:"";position:absolute;left:50%;top:-18px;height:18px;border-left:2px solid var(--line)}
+  .vertical-children::after{content:"";position:absolute;left:-2px;top:0;width:calc(50% + 2px);border-top:2px solid var(--line)}
+  .vertical-children > .node{position:relative;width:100%}
+  .vertical-children > .node::before{content:"";position:absolute;left:-20px;top:24px;width:18px;height:2px;background:var(--line)}
+  .piecewise-method{margin-top:28px;border-top:2px dashed var(--orange);padding-top:18px}
+  .piecewise-method > .node{width:100%}
+  .straight-grid .node{width:100%;min-width:0}
+  .curvi-children{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:100%;margin:0}
+  .curvi-children .node{width:100%;min-width:0}
+
+  .node{
+    position:relative;z-index:1;background:#fff;border-radius:10px;border:2px solid var(--navy);
+    padding:11px 14px;box-shadow:0 2px 6px rgba(0,20,50,.08);
+  }
+  .node.root{width:320px;text-align:center}
+  .node.l1{width:300px}
+  .node.parent2{width:300px;text-align:center}
+  .node.leaf{width:220px}
+  .node.leafwide{width:300px}
+
+  .node .t{font-weight:700;font-size:13px;color:var(--navy);margin:0 0 2px}
+  .node .sub{font-size:10.5px;color:var(--gray);font-style:italic;margin:0 0 6px}
+  .node .method{font-size:10.5px;font-weight:700;color:var(--ink);margin:4px 0 2px}
+  .node .f{font-size:12px;margin:3px 0;line-height:1.45}
+  .node .note{font-size:10px;color:var(--gray);margin-top:5px;line-height:1.4}
+  .node .warn{font-size:10px;font-weight:700;color:#8a3d1f;background:#fdf1e6;border:1px solid #e3b48d;
+              border-radius:4px;padding:3px 7px;margin-top:6px;display:inline-block}
+  .node hr{border:none;border-top:1px dashed #d7dce3;margin:7px 0}
+  .vec{font-weight:700}
+  sub, sup{font-size:75%}
+  .node, .node *{overflow-wrap:anywhere}
+
+  .node details{margin-top:5px}
+  .node summary{cursor:pointer;font-size:10.5px;font-weight:700;color:var(--blue);list-style:none;user-select:none}
+  .node summary::-webkit-details-marker{display:none}
+  .node summary::before{content:"▸ ";display:inline-block;transition:transform .1s}
+  .node details[open] summary::before{content:"▾ "}
+  .node details > *:not(summary){margin-top:4px}
+
+  .node.relative{border-color:var(--purple);background:var(--purplebg)}
+  .node.relative .t{color:var(--purple)}
+  .node.angular{border-color:var(--gold);background:var(--goldbg)}
+  .node.angular .t{color:#8a6d00}
+  .node.straight-parent{border-color:var(--blue);background:var(--bluebg)}
+  .node.straight-parent .t{color:var(--blue)}
+  .node.straight{border-color:var(--blue);background:var(--bluebg)}
+  .node.straight .t{color:var(--blue)}
+  .node.straight-decision{border-color:var(--blue);background:#dceafb;text-align:center}
+  .node.straight-decision .t{color:var(--blue)}
+  .crossref{margin-top:7px;padding-top:6px;border-top:2px dashed var(--orange);color:#8b451f;
+            font-size:10.5px;font-weight:700;line-height:1.4}
+  .node.curvi-parent{border-color:var(--orange);background:var(--orangebg)}
+  .node.curvi-parent .t{color:var(--orange)}
+  .node.curvi{border-color:var(--orange);background:var(--orangebg)}
+  .node.curvi .t{color:var(--orange)}
+
+  footer.guidance{
+    max-width:900px;margin:36px auto 50px;padding:14px 20px;background:#fff;
+    border:2px solid var(--navy);border-radius:10px;font-size:12.5px;line-height:1.55;
+  }
+  footer.guidance .t{font-weight:700;color:var(--navy);font-size:13.5px;margin-bottom:6px}
+  .copyright{max-width:900px;margin:-30px auto 28px;padding:0 20px;text-align:center;
+             color:var(--gray);font-size:11px;line-height:1.5}
+
+  /* ---------------- mobile: depth-indented rail tree ---------------- */
+  @media (max-width:1100px) and (min-width:761px){
+    .curvi-children{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+
+  @media (max-width:760px){
+    .export-tools{margin:12px}
+    .export-fields{grid-template-columns:1fr}
+    .level, .straight-grid, .straight-row, .straight-main, .acceleration-types, .curvi-children{
+      display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:0;width:auto;margin-top:0;
+    }
+    .subtree-layout{display:flex;flex-direction:column;gap:0;margin-top:0}
+    .subtree{display:block;position:relative;margin-left:32px;padding-left:14px;border-left:3px solid var(--line)}
+    #stage{padding:0 12px}
+    svg#connectors{display:none}
+    .node{width:auto !important;margin:10px 0;position:relative}
+    /* the rail lives on the LEVEL container (spanning its full height, including the
+       gaps between sibling nodes) so it reads as one continuous line, not a dashed one */
+    .level[data-depth="1"]{
+      border-left:3px solid var(--line);
+    }
+    .level[data-depth="1"]{margin-left:16px;padding-left:14px}
+    .level[data-depth="1"] > .node::before,
+    .subtree > .node::before,
+    .straight-grid .node::before,
+    .curvi-children .node::before{
+      content:"";position:absolute;left:-14px;top:22px;width:14px;height:2px;background:var(--line);
+    }
+    .subtree > .node{margin-bottom:10px}
+    .straight-main, .curvi-children{margin-left:16px;padding-left:14px;border-left:3px solid var(--line)}
+    .acceleration-types{margin-left:32px;padding-left:14px;border-left:3px solid var(--line)}
+    .accel-column{margin-bottom:14px}
+    .vertical-children{margin-left:18px;padding-left:14px}
+    .node.root::after{content:"";position:absolute;left:16px;top:100%;width:2px;height:20px;background:var(--line)}
+    #stage > .level[data-depth="1"]{margin-top:20px}
+    #n-motionpt{margin-bottom:20px}
+    #n-motionpt::after{content:"";position:absolute;left:2px;top:100%;width:3px;height:20px;background:var(--line)}
+  }
+
+  @media print{
+    .legend{position:static}
+    .export-tools{display:none !important}
+    .export-meta{display:block}
+    .node details{display:block}
+    .node details summary{display:none}
+    .node details > *{display:block !important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="book">Bedford &amp; Fowler — Chapter 13, Motion of a Point</span>
+  <h1>Chapter 13 — Motion of a Point: Decision Map</h1>
+  <div class="author">Developed by Dr. Nuha Aljuneidi</div>
+  <p>What kind of motion information is involved?</p>
+</header>
+
+<div class="legend">
+  <span class="sw"><i class="dot" style="background:var(--navy)"></i>General selection</span>
+  <span class="sw"><i class="dot" style="background:var(--blue)"></i>Straight-line motion</span>
+  <span class="sw"><i class="dot" style="background:var(--orange)"></i>Curvilinear motion</span>
+  <span class="sw"><i class="dot" style="background:var(--gold)"></i>Angular motion</span>
+  <span class="sw"><i class="dot" style="background:var(--purple)"></i>Relative motion</span>
+</div>
+
+<section class="export-tools" aria-labelledby="export-title">
+  <div class="export-title" id="export-title">Download a personalized copy</div>
+  <div class="export-fields">
+    <label>Student name
+      <input id="student-name" type="text" autocomplete="name" placeholder="Enter your full name" required>
+    </label>
+    <label>Course section
+      <input id="course-section" type="text" placeholder="Example: Section 01" required>
+    </label>
+    <button type="button" class="secondary" id="download-png">Download as image</button>
+  </div>
+  <div class="export-error" id="export-error" role="alert" aria-live="polite"></div>
+</section>
+
+<div class="export-meta" id="export-meta" aria-live="polite"></div>
+
+<div id="stage">
+<svg id="connectors"></svg>
+
+  <!-- LEVEL 0: root -->
+  <div class="level">
+    <div class="node root" data-depth="0" id="n-root">
+      <div class="t">What kind of motion information is involved?</div>
+    </div>
+  </div>
+
+  <!-- LEVEL 1: three children of root -->
+  <div class="level" data-depth="1">
+    <div class="node l1 relative" data-depth="1" data-parent="n-root" id="n-relative">
+      <div class="t">Relative Motion — §13.8</div>
+      <div class="sub">Two or more points</div>
+      <div class="f"><span class="vec">r</span><sub>A</sub> = <span class="vec">r</span><sub>B</sub> + <span class="vec">r</span><sub>A/B</sub></div>
+      <div class="f"><span class="vec">v</span><sub>A</sub> = <span class="vec">v</span><sub>B</sub> + <span class="vec">v</span><sub>A/B</sub></div>
+      <div class="f"><span class="vec">a</span><sub>A</sub> = <span class="vec">a</span><sub>B</sub> + <span class="vec">a</span><sub>A/B</sub></div>
+      <details>
+        <summary>Details</summary>
+        <div class="note">All absolute quantities are measured relative to the same reference frame.</div>
+        <div class="note">Use this relation together with the coordinate representation appropriate for each point's motion.</div>
+      </details>
+    </div>
+
+    <div class="node l1 angular" data-depth="1" data-parent="n-root" id="n-angular">
+      <div class="t">Angular Motion of a Line — §13.5</div>
+      <div class="f">ω = dθ/dt</div>
+      <div class="f">α = dω/dt = d²θ/dt²</div>
+      <div class="f">α = ω dω/dθ</div>
+      <details>
+        <summary>Details</summary>
+        <div class="note">These relationships have the same mathematical form as the relationships for straight-line motion.</div>
+        <div class="note">ω and α are also used in polar/cylindrical motion, but Angular Motion is an independent section.</div>
+      </details>
+    </div>
+
+    <div class="node l1 parent2" data-depth="1" data-parent="n-root" id="n-motionpt">
+      <div class="t">Motion of One Point</div>
+    </div>
+  </div>
+
+  <!-- LEVEL 2: Straight-Line / Curvilinear (siblings, children of Motion of One Point) -->
+  <div class="level" data-depth="2">
+    <div class="node parent2 straight-parent" data-depth="2" data-parent="n-motionpt" id="n-straight">
+      <div class="t">Straight-Line Motion</div>
+      <div class="sub">What information is given?</div>
+    </div>
+    <div class="node parent2 curvi-parent" data-depth="2" data-parent="n-motionpt" id="n-curvi">
+      <div class="t">Curvilinear Motion</div>
+      <div class="sub">Which description best matches the information supplied?</div>
+    </div>
+  </div>
+
+  <!-- LEVEL 3a: seven straight-line leaves, intentional 4+3 grid -->
+  <div class="straight-grid" data-depth="3">
+    <div class="straight-row">
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="0" id="n-s1">
+        <div class="t">Position s(t) given — §13.2</div>
+        <div class="method">Method: differentiate.</div>
+        <div class="f">v = ds/dt</div>
+        <div class="f">a = dv/dt = d²s/dt²</div>
+      </div>
+
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="0" id="n-s2">
+        <div class="t">Velocity v(t) given — §13.2</div>
+        <div class="method">Differentiate for a; integrate for s.</div>
+        <div class="f">a = dv/dt</div>
+        <details><summary>Details</summary>
+          <div class="f">s − s₀ = ∫<sub>t₀</sub><sup>t</sup> v(τ) dτ</div>
+        </details>
+      </div>
+
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="0" id="n-s3">
+        <div class="t">Acceleration a(t) given — §13.2</div>
+        <div class="method">Integrate with respect to time.</div>
+        <div class="f">v − v₀ = ∫<sub>t₀</sub><sup>t</sup> a(τ) dτ</div>
+        <details><summary>Details</summary>
+          <div class="f">s − s₀ = ∫<sub>t₀</sub><sup>t</sup> v(τ) dτ</div>
+        </details>
+      </div>
+
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="0" id="n-s4">
+        <div class="t">Constant Acceleration — §13.2</div>
+        <div class="f">v = v₀ + a₀(t − t₀)</div>
+        <div class="f">s = s₀+v₀(t−t₀)+½a₀(t−t₀)²</div>
+        <div class="f">v² = v₀² + 2a₀(s − s₀)</div>
+        <div class="warn">Use only when acceleration is constant.</div>
+      </div>
+    </div>
+
+    <div class="straight-row">
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="1" id="n-s5">
+        <div class="t">Acceleration a(v) given — §13.3</div>
+        <div class="method">Route 1 — velocity vs. time:</div>
+        <div class="f">dt = dv / a(v)</div>
+        <details><summary>Details</summary>
+          <div class="f">t − t₀ = ∫<sub>v₀</sub><sup>v</sup> du / a(u)</div>
+          <hr>
+          <div class="method">Route 2 — velocity vs. position:</div>
+          <div class="f">a = v(dv/ds)</div>
+          <div class="f">ds = [v / a(v)] dv</div>
+          <div class="f">s − s₀ = ∫<sub>v₀</sub><sup>v</sup> [u / a(u)] du</div>
+        </details>
+      </div>
+
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="1" id="n-s6">
+        <div class="t">Acceleration a(s) given — §13.3</div>
+        <div class="f">a = v(dv/ds)</div>
+        <details><summary>Details</summary>
+          <div class="f">v dv = a(s) ds</div>
+          <div class="f">½(v² − v₀²) = ∫<sub>s₀</sub><sup>s</sup> a(ξ) dξ</div>
+        </details>
+      </div>
+
+      <div class="node leaf straight" data-depth="3" data-parent="n-straight" data-row="1" id="n-s7">
+        <div class="t">Graph or Piecewise Data — introduced in §13.2</div>
+        <div class="sub">Another way the motion information may be supplied; use slopes, areas, or interval-by-interval integration.</div>
+        <div class="f">slope of s–t graph = v</div>
+        <div class="f">slope of v–t graph = a</div>
+        <details><summary>Details</summary>
+          <div class="f">area under v–t graph = Δs</div>
+          <div class="f">area under a–t graph = Δv</div>
+          <div class="note">For piecewise equations, carry the ending position and velocity of one interval into the next interval as its initial conditions.</div>
+        </details>
+        <div class="crossref">↗ Also applies componentwise in curvilinear motion.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 3b: three curvilinear leaves, one row -->
+  <div class="level" data-depth="3">
+    <div class="node leafwide curvi" data-depth="3" data-parent="n-curvi" id="n-c1">
+      <div class="t">Cartesian Coordinates — §13.4</div>
+      <div class="f"><span class="vec">r</span> = x<span class="vec">i</span> + y<span class="vec">j</span> + z<span class="vec">k</span></div>
+      <div class="f"><span class="vec">v</span> = ẋ<span class="vec">i</span> + ẏ<span class="vec">j</span> + ż<span class="vec">k</span></div>
+      <details><summary>Details</summary>
+        <div class="f"><span class="vec">a</span> = ẍ<span class="vec">i</span> + ÿ<span class="vec">j</span> + z̈<span class="vec">k</span></div>
+        <div class="note">Useful when coordinates, component functions, or a Cartesian path equation are supplied. Cartesian coordinates can describe any path.</div>
+        <hr>
+        <div class="method">Projectile motion (neglect drag, +y upward):</div>
+        <div class="f">a_x = 0&nbsp;&nbsp; a_y = −g&nbsp;&nbsp; a_z = 0</div>
+        <div class="note">Horizontal and vertical motion use the same time.</div>
+      </details>
+    </div>
+
+    <div class="node leafwide curvi" data-depth="3" data-parent="n-curvi" id="n-c2">
+      <div class="t">Normal and Tangential Components — §13.6</div>
+      <div class="f"><span class="vec">v</span> = v <span class="vec">e</span><sub>t</sub></div>
+      <div class="f"><span class="vec">a</span> = (dv/dt)<span class="vec">e</span><sub>t</sub> + (v²/ρ)<span class="vec">e</span><sub>n</sub></div>
+      <details><summary>Details</summary>
+        <div class="f">a_t = dv/dt — change in speed</div>
+        <div class="f">a_n = v²/ρ — change in direction</div>
+        <div class="note"><span class="vec">e</span><sub>n</sub> points toward the concave side of the path. Useful when path curvature and speed are known or needed.</div>
+      </details>
+    </div>
+
+    <div class="node leafwide curvi" data-depth="3" data-parent="n-curvi" id="n-c3">
+      <div class="t">Polar and Cylindrical Coordinates — §13.7</div>
+      <div class="f"><span class="vec">r</span> = r <span class="vec">e</span><sub>r</sub></div>
+      <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rθ̇<span class="vec">e</span><sub>θ</sub></div>
+      <div class="f"><span class="vec">a</span> = (r̈−rθ̇²)<span class="vec">e</span><sub>r</sub> + (rθ̈+2ṙθ̇)<span class="vec">e</span><sub>θ</sub></div>
+      <details><summary>Details</summary>
+        <div class="note">−rθ̇² = centripetal term.&nbsp; 2ṙθ̇ = Coriolis term.</div>
+        <hr>
+        <div class="method">Cylindrical extension:</div>
+        <div class="f"><span class="vec">r</span> = r <span class="vec">e</span><sub>r</sub> + z <span class="vec">e</span><sub>z</sub></div>
+        <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rθ̇<span class="vec">e</span><sub>θ</sub> + ż<span class="vec">e</span><sub>z</sub></div>
+        <div class="f"><span class="vec">a</span> = (r̈−rθ̇²)<span class="vec">e</span><sub>r</sub> + (rθ̈+2ṙθ̇)<span class="vec">e</span><sub>θ</sub> + z̈<span class="vec">e</span><sub>z</sub></div>
+        <div class="note">Useful when position or constraints are naturally expressed using radial distance r and angle θ — circular, orbital, and central-force motion.</div>
+      </details>
+    </div>
+  </div>
+
+</div>
+
+<footer class="guidance">
+  <div class="t">Choose the representation from the information supplied — not from path shape alone.</div>
+  <div>• Cartesian coordinates can represent any path.</div>
+  <div>• Normal–tangential components emphasize speed and curvature.</div>
+  <div>• Polar/cylindrical coordinates emphasize radial and angular quantities.</div>
+</footer>
+
+<div class="copyright" role="contentinfo">
+  Developed by Dr. Nuha Aljuneidi &nbsp;•&nbsp; © 2026 Dr. Nuha Aljuneidi. All rights reserved.
+</div>
+
+<script>
+(function(){
+  var svg = document.getElementById('connectors');
+  var stage = document.getElementById('stage');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function isMobile(){ return window.matchMedia('(max-width:760px)').matches; }
+
+  function prepareStructure(){
+    if (document.querySelector('.subtree-layout')) return;
+    var level2 = document.querySelector('.level[data-depth="2"]');
+    var straight = document.getElementById('n-straight');
+    var curvi = document.getElementById('n-curvi');
+    var straightGrid = document.querySelector('.straight-grid');
+    var curviLevel = document.getElementById('n-c1').parentElement;
+    var layout = document.createElement('div');
+    layout.className = 'subtree-layout';
+    var straightLane = document.createElement('section');
+    straightLane.className = 'subtree straight-lane';
+    straightLane.setAttribute('aria-label','Straight-Line Motion methods');
+    var curviLane = document.createElement('section');
+    curviLane.className = 'subtree curvi-lane';
+    curviLane.setAttribute('aria-label','Curvilinear Motion methods');
+    var curviChildren = document.createElement('div');
+    curviChildren.className = 'curvi-children';
+
+    level2.parentNode.insertBefore(layout, level2);
+    layout.appendChild(straightLane);
+    layout.appendChild(curviLane);
+    straightLane.appendChild(straight);
+    straightLane.appendChild(straightGrid);
+    curviLane.appendChild(curvi);
+    Array.from(curviLevel.children).forEach(function(node){ curviChildren.appendChild(node); });
+    curviLane.appendChild(curviChildren);
+    level2.remove();
+    curviLevel.remove();
+
+    // Rebuild the straight-line portion as a conceptual hierarchy rather than
+    // using arbitrary visual columns.
+    var s1=document.getElementById('n-s1'), s2=document.getElementById('n-s2');
+    var s3=document.getElementById('n-s3'), s4=document.getElementById('n-s4');
+    var s5=document.getElementById('n-s5'), s6=document.getElementById('n-s6');
+    var s7=document.getElementById('n-s7');
+    var oldRows=Array.from(straightGrid.querySelectorAll('.straight-row'));
+
+    var acceleration=document.createElement('div');
+    acceleration.className='node leaf straight-decision';
+    acceleration.id='n-acceleration';
+    acceleration.dataset.parent='n-straight';
+    acceleration.dataset.depth='3';
+    acceleration.innerHTML='<div class="t">Acceleration is specified</div><div class="sub">Is it constant or variable?</div>';
+
+    var constant=document.createElement('div');
+    constant.className='node leaf straight-decision';
+    constant.id='n-constant';
+    constant.dataset.parent='n-acceleration';
+    constant.dataset.depth='4';
+    constant.innerHTML='<div class="t">Constant Acceleration — §13.2</div><div class="sub">Use the three shortcut equations below.</div><div class="warn">Use only when acceleration is constant.</div>';
+
+    var variable=document.createElement('div');
+    variable.className='node leaf straight-decision';
+    variable.id='n-variable';
+    variable.dataset.parent='n-acceleration';
+    variable.dataset.depth='4';
+    variable.innerHTML='<div class="t">Variable Acceleration</div><div class="sub">What does acceleration depend on?</div>';
+
+    [s1,s2,s3,s4,s5,s6,s7].forEach(function(n){ if(n) n.remove(); });
+    oldRows.forEach(function(r){r.remove();});
+
+    [s1,s2].forEach(function(n){n.dataset.parent='n-straight'; n.removeAttribute('data-row');});
+    [s3,s5,s6,s7].forEach(function(n){n.removeAttribute('data-parent'); n.removeAttribute('data-row');});
+
+    var constantEquations=Array.from(s4.querySelectorAll('.f')).map(function(f,i){
+      var box=document.createElement('div');
+      box.className='node straight equation-node';
+      box.id='n-constant-eq'+(i+1);
+      box.innerHTML='<div class="f">'+f.innerHTML+'</div>';
+      return box;
+    });
+
+    var main=document.createElement('div');
+    main.className='straight-main';
+    main.append(s1,s2,acceleration);
+
+    var accelerationTypes=document.createElement('div');
+    accelerationTypes.className='acceleration-types';
+    var constantColumn=document.createElement('section');
+    constantColumn.className='accel-column constant-column';
+    var constantChildren=document.createElement('div');
+    constantChildren.className='vertical-children constant-equations';
+    constantChildren.append.apply(constantChildren,constantEquations);
+    constantColumn.append(constant,constantChildren);
+
+    var variableColumn=document.createElement('section');
+    variableColumn.className='accel-column variable-column';
+    var variableChildren=document.createElement('div');
+    variableChildren.className='vertical-children variable-children';
+    variableChildren.append(s3,s5,s6);
+    variableColumn.append(variable,variableChildren);
+    accelerationTypes.append(constantColumn,variableColumn);
+
+    var piecewise=document.createElement('aside');
+    piecewise.className='piecewise-method';
+    piecewise.setAttribute('aria-label','Graphical and piecewise method');
+    piecewise.append(s7);
+
+    straightGrid.append(main,accelerationTypes,piecewise);
+  }
+
+  function line(x1,y1,x2,y2){
+    var p = document.createElementNS(NS,'path');
+    p.setAttribute('d', 'M'+x1+','+y1+' L'+x2+','+y2);
+    svg.appendChild(p);
+  }
+  function centerX(rect, stageRect){ return rect.left + rect.width/2 - stageRect.left; }
+
+  function draw(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    if (isMobile()) return;
+
+    var stageRect = stage.getBoundingClientRect();
+    svg.setAttribute('width', stageRect.width);
+    svg.setAttribute('height', stage.scrollHeight);
+    svg.setAttribute('viewBox', '0 0 ' + stageRect.width + ' ' + stage.scrollHeight);
+
+    // group children by parent, then by row within that parent
+    var byParent = {};
+    stage.querySelectorAll('.node[data-parent]').forEach(function(el){
+      var pid = el.dataset.parent;
+      var row = el.dataset.row ? parseInt(el.dataset.row, 10) : 0;
+      (byParent[pid] = byParent[pid] || []).push({el: el, row: row});
+    });
+
+    Object.keys(byParent).forEach(function(pid){
+      var parent = document.getElementById(pid);
+      if (!parent) return;
+      var pRect = parent.getBoundingClientRect();
+      var px = centerX(pRect, stageRect);
+      var curY = pRect.bottom - stageRect.top;
+
+      var kids = byParent[pid].map(function(k){ return k.el; });
+      kids.sort(function(a,b){
+        var ar=a.getBoundingClientRect(), br=b.getBoundingClientRect();
+        return Math.abs(ar.top-br.top)>4 ? ar.top-br.top : ar.left-br.left;
+      });
+      var visualRows=[];
+      kids.forEach(function(el){
+        var top=el.getBoundingClientRect().top;
+        var row=visualRows.find(function(r){return Math.abs(r.top-top)<6;});
+        if(row){row.els.push(el);}else{visualRows.push({top:top,els:[el]});}
+      });
+
+      visualRows.forEach(function(row){
+        var els = row.els;
+        var rects = els.map(function(el){ return el.getBoundingClientRect(); });
+        var tops = rects.map(function(r){ return r.top - stageRect.top; });
+        var railY = Math.min.apply(null, tops) - 14;
+
+        // stem from current point down to this row's rail (straight vertical at px)
+        line(px, curY, px, railY);
+
+        var xs = rects.map(function(r){ return centerX(r, stageRect); });
+        if (xs.length > 1){
+          line(Math.min.apply(null, xs), railY, Math.max.apply(null, xs), railY);
+        }
+        els.forEach(function(el, i){
+          var cx = xs[i], cy = tops[i];
+          line(cx, railY, cx, cy);
+        });
+
+        curY = railY;
+      });
+    });
+  }
+
+  prepareStructure();
+
+  var nameInput=document.getElementById('student-name');
+  var sectionInput=document.getElementById('course-section');
+  var exportError=document.getElementById('export-error');
+  var exportMeta=document.getElementById('export-meta');
+
+  function exportIdentity(){
+    var name=nameInput.value.trim();
+    var section=sectionInput.value.trim();
+    exportError.textContent='';
+    nameInput.removeAttribute('aria-invalid');
+    sectionInput.removeAttribute('aria-invalid');
+    if(!name || !section){
+      exportError.textContent='Enter both your name and course section before downloading.';
+      if(!name){nameInput.setAttribute('aria-invalid','true');nameInput.focus();}
+      else{sectionInput.setAttribute('aria-invalid','true');sectionInput.focus();}
+      return null;
+    }
+    exportMeta.textContent='Prepared for: '+name+'  |  Course section: '+section;
+    return {name:name,section:section};
+  }
+
+  function safeFilePart(value){
+    return value.replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,50) || 'student';
+  }
+
+  function nextPaint(){
+    return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});
+  }
+
+  async function downloadPng(){
+    var who=exportIdentity();
+    if(!who) return;
+    var states=Array.from(document.querySelectorAll('details')).map(function(d){return d.open;});
+    document.querySelectorAll('details').forEach(function(d){d.open=true;});
+    document.body.classList.add('exporting');
+    await nextPaint();
+    draw();
+    await nextPaint();
+
+    try{
+      var width=Math.ceil(Math.max(document.documentElement.scrollWidth,document.body.scrollWidth));
+      var height=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight));
+      var clone=document.documentElement.cloneNode(true);
+      clone.querySelectorAll('script,.export-tools').forEach(function(el){el.remove();});
+      clone.querySelectorAll('details').forEach(function(d){d.setAttribute('open','');});
+      var serialized=new XMLSerializer().serializeToString(clone);
+      var svgText='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'">'+
+        '<foreignObject width="100%" height="100%">'+serialized+'</foreignObject></svg>';
+      var url=URL.createObjectURL(new Blob([svgText],{type:'image/svg+xml;charset=utf-8'}));
+      var img=new Image();
+      await new Promise(function(resolve,reject){img.onload=resolve;img.onerror=reject;img.src=url;});
+      var scale=Math.min(2,12000/Math.max(width,height));
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(width*scale));
+      canvas.height=Math.max(1,Math.round(height*scale));
+      var ctx=canvas.getContext('2d');
+      ctx.fillStyle='#f3f5f8';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      URL.revokeObjectURL(url);
+      var blob=await new Promise(function(resolve){canvas.toBlob(resolve,'image/png');});
+      if(!blob) throw new Error('PNG creation failed');
+      var link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download='Chapter-13-Decision-Map_'+safeFilePart(who.name)+'_'+safeFilePart(who.section)+'.png';
+      document.body.appendChild(link);link.click();link.remove();
+      setTimeout(function(){URL.revokeObjectURL(link.href);},1000);
+    }catch(err){
+      exportError.textContent='The image could not be created in this browser. Please try a current version of Chrome, Edge, or Firefox.';
+    }finally{
+      document.querySelectorAll('details').forEach(function(d,i){d.open=!!states[i];});
+      document.body.classList.remove('exporting');
+      draw();
+    }
+  }
+
+  document.getElementById('download-png').addEventListener('click',downloadPng);
+  var printStates=[];
+  window.addEventListener('beforeprint', function(){
+    printStates=Array.from(document.querySelectorAll('details')).map(function(d){return d.open;});
+    document.querySelectorAll('details').forEach(function(d){d.open=true;});
+    draw();
+  });
+  window.addEventListener('afterprint', function(){
+    document.querySelectorAll('details').forEach(function(d,i){d.open=!!printStates[i];});
+    draw();
+  });
+
+  window.addEventListener('load', draw);
+  window.addEventListener('resize', function(){ requestAnimationFrame(draw); });
+  document.addEventListener('toggle', function(){ requestAnimationFrame(draw); }, true);
+  if (document.fonts && document.fonts.ready){ document.fonts.ready.then(draw); }
+  document.addEventListener('DOMContentLoaded', draw);
+  setTimeout(draw, 50);
+  setTimeout(draw, 300);
+})();
+</script>
+
+</body>
+</html>
