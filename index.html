@@ -65,15 +65,8 @@
   .acceleration-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;width:100%;margin-top:34px}
   .accel-column{min-width:0;display:flex;flex-direction:column;align-items:stretch}
   .accel-column > .node{width:100%;margin-bottom:18px}
-  .vertical-children{position:relative;display:flex;flex-direction:column;gap:12px;margin-left:18px;padding-left:18px;
-                     --child-gap:12px}
-  .vertical-children::before{content:"";position:absolute;left:50%;top:-18px;height:18px;border-left:2px solid var(--line)}
-  .vertical-children::after{content:"";position:absolute;left:-2px;top:0;width:calc(50% + 2px);border-top:2px solid var(--line)}
+  .vertical-children{position:relative;display:flex;flex-direction:column;gap:12px;margin-left:18px;padding-left:18px}
   .vertical-children > .node{position:relative;width:100%}
-  .vertical-children > .node::before{content:"";position:absolute;left:-20px;top:24px;width:18px;height:2px;background:var(--line)}
-  .vertical-children > .node:not(:last-child)::after{
-    content:"";position:absolute;left:-20px;top:24px;width:2px;height:calc(100% + var(--child-gap));background:var(--line)
-  }
   .piecewise-method{margin-top:28px;border-top:2px dashed var(--orange);padding-top:18px}
   .piecewise-method > .node{width:100%}
   .straight-grid .node{width:100%;min-width:0}
@@ -469,6 +462,8 @@
       var box=document.createElement('div');
       box.className='node straight equation-node';
       box.id='n-constant-eq'+(i+1);
+      box.dataset.parent='n-constant';
+      box.dataset.depth='5';
       box.innerHTML='<div class="f">'+f.innerHTML+'</div>';
       return box;
     });
@@ -490,6 +485,7 @@
     variableColumn.className='accel-column variable-column';
     var variableChildren=document.createElement('div');
     variableChildren.className='vertical-children variable-children';
+    [s3,s5,s6].forEach(function(n){n.dataset.parent='n-variable';n.dataset.depth='5';});
     variableChildren.append(s3,s5,s6);
     variableColumn.append(variable,variableChildren);
     accelerationTypes.append(constantColumn,variableColumn);
