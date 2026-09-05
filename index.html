@@ -562,7 +562,10 @@
         if (visualRows.length === 1){
           line(px, curY, px, railY);
           if (xs.length > 1){
-            line(Math.min.apply(null, xs), railY, Math.max.apply(null, xs), railY);
+            /* Include the parent's center in the shared rail. The parent can sit
+               slightly outside the span of its children in asymmetric layouts. */
+            line(Math.min.apply(null, xs.concat([px])), railY,
+                 Math.max.apply(null, xs.concat([px])), railY);
           }
         }else{
           var rowTrunk=Math.max(8,Math.min.apply(null,rects.map(function(r){return r.left-stageRect.left;}))-12);
