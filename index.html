@@ -13,9 +13,9 @@
     --ink:#14213a; --gray:#5f7084; --line:#8a96a8; --page:#f3f5f8; --topgold:#ffcc00;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,system-ui,sans-serif}
+  html,body{margin:0;background:var(--page);color:var(--ink);font-family:"Aptos","Segoe UI",Arial,sans-serif}
   header{background:var(--navy);color:#fff;padding:18px clamp(14px,3vw,36px);border-top:6px solid var(--topgold)}
-  header h1{margin:0;font-size:clamp(18px,2.6vw,26px);font-weight:700}
+  header h1{margin:0;font-family:Georgia,"Times New Roman",serif;font-size:clamp(20px,2.6vw,28px);font-weight:700}
   header p{margin:5px 0 0;color:#cfe0ef;font-size:13.5px}
   header .author{margin:8px 0 2px;color:var(--topgold);font-size:clamp(17px,2.1vw,23px);font-weight:700;
                  letter-spacing:.01em}
@@ -26,14 +26,14 @@
   .legend .sw{display:inline-flex;align-items:center;gap:6px;font-weight:700}
   .legend .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
 
-  .export-tools{max-width:980px;margin:18px auto 0;padding:14px 16px;background:#fff;border:1px solid #d7dee8;
-                border-radius:10px;box-shadow:0 2px 6px rgba(0,20,50,.06)}
-  .export-tools .export-title{font-weight:700;color:var(--navy);font-size:13px;margin-bottom:10px}
+  .export-tools{max-width:980px;margin:18px auto 0;padding:14px 16px;background:#fff;border:1px solid #c8d0da;
+                border-radius:4px}
+  .export-tools .export-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;color:var(--navy);font-size:14px;margin-bottom:10px}
   .export-fields{display:grid;grid-template-columns:minmax(190px,1fr) minmax(150px,.7fr) auto;gap:10px;align-items:end}
   .export-fields label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:var(--gray)}
   .export-fields input{min-height:42px;border:1px solid #aeb9c7;border-radius:7px;padding:9px 10px;font:inherit;color:var(--ink)}
   .export-fields input:focus{outline:3px solid rgba(15,95,174,.22);border-color:var(--blue)}
-  .export-fields button{min-height:42px;border:0;border-radius:7px;padding:9px 14px;font:700 12px Arial,sans-serif;
+  .export-fields button{min-height:42px;border:0;border-radius:4px;padding:9px 14px;font:700 13px "Aptos","Segoe UI",Arial,sans-serif;
                         cursor:pointer;color:#fff;background:var(--navy)}
   .export-fields button.secondary{background:var(--blue)}
   .export-fields button:hover{filter:brightness(1.08)}
@@ -78,21 +78,24 @@
   .curvi-children .node{width:100%;min-width:0}
 
   .node{
-    position:relative;z-index:1;background:#fff;border-radius:10px;border:2px solid var(--navy);
-    padding:11px 14px;box-shadow:0 2px 6px rgba(0,20,50,.08);
+    position:relative;z-index:1;background:#fff;border-radius:4px;border:1.5px solid var(--navy);
+    padding:12px 14px;
   }
   .node.root{width:320px;text-align:center}
   .node.l1{width:300px}
   .node.parent2{width:300px;text-align:center}
   .node.leaf{width:220px}
   .node.leafwide{width:300px}
+  .straight-main > .node,
+  .accel-column > .node,
+  .curvi-children > .node{width:100%}
 
-  .node .t{font-weight:700;font-size:13px;color:var(--navy);margin:0 0 2px}
-  .node .sub{font-size:10.5px;color:var(--gray);font-style:italic;margin:0 0 6px}
-  .node .method{font-size:10.5px;font-weight:700;color:var(--ink);margin:4px 0 2px}
-  .node .f{font-size:12px;margin:3px 0;line-height:1.45}
-  .node .note{font-size:10px;color:var(--gray);margin-top:5px;line-height:1.4}
-  .node .warn{font-size:10px;font-weight:700;color:#8a3d1f;background:#fdf1e6;border:1px solid #e3b48d;
+  .node .t{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:14px;line-height:1.3;color:var(--navy);margin:0 0 3px}
+  .node .sub{font-size:12px;color:var(--gray);font-style:italic;margin:0 0 7px;line-height:1.4}
+  .node .method{font-size:12px;font-weight:700;color:var(--ink);margin:5px 0 2px}
+  .node .f{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:13.5px;margin:4px 0;line-height:1.5}
+  .node .note{font-size:11.5px;color:var(--gray);margin-top:6px;line-height:1.45}
+  .node .warn{font-size:11px;font-weight:700;color:#8a3d1f;background:#fdf1e6;border:1px solid #e3b48d;
               border-radius:4px;padding:3px 7px;margin-top:6px;display:inline-block}
   .node hr{border:none;border-top:1px dashed #d7dce3;margin:7px 0}
   .vec{font-weight:700}
@@ -100,7 +103,7 @@
   .node, .node *{overflow-wrap:anywhere}
 
   .node details{margin-top:5px}
-  .node summary{cursor:pointer;font-size:10.5px;font-weight:700;color:var(--blue);list-style:none;user-select:none}
+  .node summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--blue);list-style:none;user-select:none}
   .node summary::-webkit-details-marker{display:none}
   .node summary::before{content:"▸ ";display:inline-block;transition:transform .1s}
   .node details[open] summary::before{content:"▾ "}
@@ -125,13 +128,13 @@
 
   footer.guidance{
     max-width:900px;margin:36px auto 50px;padding:14px 20px;background:#fff;
-    border:2px solid var(--navy);border-radius:10px;font-size:12.5px;line-height:1.55;
+    border:1.5px solid var(--navy);border-radius:4px;font-size:13px;line-height:1.55;
   }
   footer.guidance .t{font-weight:700;color:var(--navy);font-size:13.5px;margin-bottom:6px}
   .copyright{max-width:900px;margin:-30px auto 28px;padding:0 20px;text-align:center;
              color:var(--gray);font-size:11px;line-height:1.5}
 
-  /* ---------------- mobile: depth-indented rail tree ---------------- */
+  /* ---------------- responsive tree ---------------- */
   @media (max-width:1100px) and (min-width:761px){
     .curvi-children{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
@@ -139,35 +142,24 @@
   @media (max-width:760px){
     .export-tools{margin:12px}
     .export-fields{grid-template-columns:1fr}
-    .level, .straight-grid, .straight-row, .straight-main, .acceleration-types, .curvi-children{
-      display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:0;width:auto;margin-top:0;
+    .level, .straight-grid, .straight-row, .curvi-children{
+      display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:16px;width:auto;margin-top:24px;
     }
-    .subtree-layout{display:flex;flex-direction:column;gap:0;margin-top:0}
-    .subtree{display:block;position:relative;margin-left:32px;padding-left:14px;border-left:3px solid var(--line)}
+    .straight-main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;margin-top:0}
+    .acceleration-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%;margin-top:34px}
+    .subtree-layout{display:flex;flex-direction:column;gap:42px;margin-top:34px}
+    .subtree{display:flex;position:relative;margin:0;padding:0}
     #stage{padding:0 12px}
-    svg#connectors{display:none}
-    .node{width:auto !important;margin:10px 0;position:relative}
-    /* the rail lives on the LEVEL container (spanning its full height, including the
-       gaps between sibling nodes) so it reads as one continuous line, not a dashed one */
-    .level[data-depth="1"]{
-      border-left:3px solid var(--line);
-    }
-    .level[data-depth="1"]{margin-left:16px;padding-left:14px}
-    .level[data-depth="1"] > .node::before,
-    .subtree > .node::before,
-    .straight-grid .node::before,
-    .curvi-children .node::before{
-      content:"";position:absolute;left:-14px;top:22px;width:14px;height:2px;background:var(--line);
-    }
-    .subtree > .node{margin-bottom:10px}
-    .straight-main, .curvi-children{margin-left:16px;padding-left:14px;border-left:3px solid var(--line)}
-    .acceleration-types{margin-left:32px;padding-left:14px;border-left:3px solid var(--line)}
-    .accel-column{margin-bottom:14px}
+    svg#connectors{display:block}
+    .node{width:auto !important;margin:0;position:relative}
+    .subtree > .node{margin-bottom:34px;align-self:center;width:min(100%,300px) !important}
+    .accel-column{margin:0}
     .vertical-children{margin-left:18px;padding-left:14px}
-    .node.root::after{content:"";position:absolute;left:16px;top:100%;width:2px;height:20px;background:var(--line)}
-    #stage > .level[data-depth="1"]{margin-top:20px}
-    #n-motionpt{margin-bottom:20px}
-    #n-motionpt::after{content:"";position:absolute;left:2px;top:100%;width:3px;height:20px;background:var(--line)}
+    #stage > .level[data-depth="1"]{margin-top:34px}
+  }
+
+  @media (max-width:430px){
+    .straight-main,.acceleration-types{display:flex;flex-direction:column;gap:18px}
   }
 
   @media print{
@@ -406,8 +398,6 @@
   var stage = document.getElementById('stage');
   var NS = 'http://www.w3.org/2000/svg';
 
-  function isMobile(){ return window.matchMedia('(max-width:760px)').matches; }
-
   function prepareStructure(){
     if (document.querySelector('.subtree-layout')) return;
     var level2 = document.querySelector('.level[data-depth="2"]');
@@ -518,7 +508,6 @@
 
   function draw(){
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    if (isMobile()) return;
 
     var stageRect = stage.getBoundingClientRect();
     svg.setAttribute('width', stageRect.width);
@@ -552,25 +541,37 @@
         if(row){row.els.push(el);}else{visualRows.push({top:top,els:[el]});}
       });
 
+      if (visualRows.length > 1){
+        var allRects=kids.map(function(el){return el.getBoundingClientRect();});
+        var trunkX=Math.max(8,Math.min.apply(null,allRects.map(function(r){return r.left-stageRect.left;}))-12);
+        var firstRail=Math.min.apply(null,visualRows[0].els.map(function(el){return el.getBoundingClientRect().top-stageRect.top;}))-14;
+        var lastRail=Math.min.apply(null,visualRows[visualRows.length-1].els.map(function(el){return el.getBoundingClientRect().top-stageRect.top;}))-14;
+        var elbowY=Math.min(firstRail,curY+12);
+        line(px,curY,px,elbowY);
+        line(px,elbowY,trunkX,elbowY);
+        line(trunkX,elbowY,trunkX,lastRail);
+      }
+
       visualRows.forEach(function(row){
         var els = row.els;
         var rects = els.map(function(el){ return el.getBoundingClientRect(); });
         var tops = rects.map(function(r){ return r.top - stageRect.top; });
         var railY = Math.min.apply(null, tops) - 14;
 
-        // stem from current point down to this row's rail (straight vertical at px)
-        line(px, curY, px, railY);
-
         var xs = rects.map(function(r){ return centerX(r, stageRect); });
-        if (xs.length > 1){
-          line(Math.min.apply(null, xs), railY, Math.max.apply(null, xs), railY);
+        if (visualRows.length === 1){
+          line(px, curY, px, railY);
+          if (xs.length > 1){
+            line(Math.min.apply(null, xs), railY, Math.max.apply(null, xs), railY);
+          }
+        }else{
+          var rowTrunk=Math.max(8,Math.min.apply(null,rects.map(function(r){return r.left-stageRect.left;}))-12);
+          line(rowTrunk,railY,Math.max.apply(null,xs),railY);
         }
         els.forEach(function(el, i){
           var cx = xs[i], cy = tops[i];
           line(cx, railY, cx, cy);
         });
-
-        curY = railY;
       });
     });
   }
