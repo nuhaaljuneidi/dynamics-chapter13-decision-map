@@ -533,6 +533,23 @@
         var ar=a.getBoundingClientRect(), br=b.getBoundingClientRect();
         return Math.abs(ar.top-br.top)>4 ? ar.top-br.top : ar.left-br.left;
       });
+
+      /* The two acceleration method groups use a bracket-style tree: one
+         left-side trunk and a short side-entry branch into each child. */
+      if (pid === 'n-constant' || pid === 'n-variable'){
+        var childRects=kids.map(function(el){return el.getBoundingClientRect();});
+        var trunkX=Math.max(8,Math.min.apply(null,childRects.map(function(r){return r.left-stageRect.left;}))-12);
+        var childMidYs=childRects.map(function(r){return r.top+r.height/2-stageRect.top;});
+        var elbowY=Math.min(childMidYs[0],curY+10);
+        line(px,curY,px,elbowY);
+        line(px,elbowY,trunkX,elbowY);
+        line(trunkX,elbowY,trunkX,childMidYs[childMidYs.length-1]);
+        childRects.forEach(function(r,i){
+          line(trunkX,childMidYs[i],r.left-stageRect.left,childMidYs[i]);
+        });
+        return;
+      }
+
       var visualRows=[];
       kids.forEach(function(el){
         var top=el.getBoundingClientRect().top;
