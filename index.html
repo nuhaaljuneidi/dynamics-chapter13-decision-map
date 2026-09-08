@@ -43,7 +43,8 @@
                font-weight:700;color:var(--navy);border:1px solid #c6d2df;border-radius:7px;background:#fff}
   .export-meta:empty{display:none !important}
   body.exporting .export-tools{display:none}
-  body.exporting .export-meta{display:block}
+  body.exporting .export-meta{display:none}
+  body.exporting #stage details{display:none !important}
 
   #stage{position:relative;max-width:1900px;margin:0 auto;padding:0 16px 10px}
   svg#connectors{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible}
@@ -388,6 +389,7 @@
   Developed by Dr. Nuha Aljuneidi &nbsp;•&nbsp; © 2026 Dr. Nuha Aljuneidi. All rights reserved.
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 (function(){
   var svg = document.getElementById('connectors');
@@ -626,50 +628,13 @@
     return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});
   }
 
+  var LOGGER_URL='https://script.google.com/macros/s/AKfycbwmh8vX2n26GHHKq9yIGjy3fanmZ_XQddXHSH3RmrtV3HdhrpO27E3zZvXswCfN9QRpXg/exec';
+  async function logDownload(who){var body=new URLSearchParams({action:'download',studentName:who.name,email:'',activity:'Chapter 13 — Motion of a Point: Decision Map',scenario:'Course section: '+who.section,displacement:'',distance:'',notes:'Downloaded decision-map image'});await fetch(LOGGER_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body});}
   async function downloadPng(){
-    var who=exportIdentity();
-    if(!who) return;
-    var states=Array.from(document.querySelectorAll('details')).map(function(d){return d.open;});
-    document.querySelectorAll('details').forEach(function(d){d.open=true;});
-    document.body.classList.add('exporting');
-    await nextPaint();
-    draw();
-    await nextPaint();
-
-    try{
-      var width=Math.ceil(Math.max(document.documentElement.scrollWidth,document.body.scrollWidth));
-      var height=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight));
-      var clone=document.documentElement.cloneNode(true);
-      clone.querySelectorAll('script,.export-tools').forEach(function(el){el.remove();});
-      clone.querySelectorAll('details').forEach(function(d){d.setAttribute('open','');});
-      var serialized=new XMLSerializer().serializeToString(clone);
-      var svgText='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'">'+
-        '<foreignObject width="100%" height="100%">'+serialized+'</foreignObject></svg>';
-      var url=URL.createObjectURL(new Blob([svgText],{type:'image/svg+xml;charset=utf-8'}));
-      var img=new Image();
-      await new Promise(function(resolve,reject){img.onload=resolve;img.onerror=reject;img.src=url;});
-      var scale=Math.min(2,12000/Math.max(width,height));
-      var canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.round(width*scale));
-      canvas.height=Math.max(1,Math.round(height*scale));
-      var ctx=canvas.getContext('2d');
-      ctx.fillStyle='#f3f5f8';ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      URL.revokeObjectURL(url);
-      var blob=await new Promise(function(resolve){canvas.toBlob(resolve,'image/png');});
-      if(!blob) throw new Error('PNG creation failed');
-      var link=document.createElement('a');
-      link.href=URL.createObjectURL(blob);
-      link.download='Chapter-13-Decision-Map_'+safeFilePart(who.name)+'_'+safeFilePart(who.section)+'.png';
-      document.body.appendChild(link);link.click();link.remove();
-      setTimeout(function(){URL.revokeObjectURL(link.href);},1000);
-    }catch(err){
-      exportError.textContent='The image could not be created in this browser. Please try a current version of Chrome, Edge, or Firefox.';
-    }finally{
-      document.querySelectorAll('details').forEach(function(d,i){d.open=!!states[i];});
-      document.body.classList.remove('exporting');
-      draw();
-    }
+    var who=exportIdentity();if(!who)return;var button=document.getElementById('download-png');var states=Array.from(document.querySelectorAll('details')).map(function(d){return d.open;});button.disabled=true;button.textContent='Creating image…';document.querySelectorAll('details').forEach(function(d){d.open=false;});document.body.classList.add('exporting');await nextPaint();draw();await nextPaint();
+    try{if(typeof html2canvas!=='function')throw new Error('Image library did not load');var canvas=await html2canvas(stage,{backgroundColor:'#f3f5f8',scale:Math.min(2,12000/Math.max(stage.scrollWidth,stage.scrollHeight)),logging:false,useCORS:true,width:stage.scrollWidth,height:stage.scrollHeight,windowWidth:stage.scrollWidth,windowHeight:stage.scrollHeight,scrollX:0,scrollY:0});var blob=await new Promise(function(resolve){canvas.toBlob(resolve,'image/png');});if(!blob)throw new Error('PNG creation failed');var downloadUrl=URL.createObjectURL(blob),link=document.createElement('a');link.href=downloadUrl;link.download='Chapter-13-Decision-Map_'+safeFilePart(who.name)+'_'+safeFilePart(who.section)+'.png';document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(downloadUrl);},1000);exportError.textContent='Download started. Your name and course section were recorded.';try{await logDownload(who);}catch(logError){exportError.textContent='Image downloaded, but the course log could not be reached.';}}
+    catch(err){exportError.textContent='The image could not be created. Check your connection, then try again.';}
+    finally{document.querySelectorAll('details').forEach(function(d,i){d.open=!!states[i];});document.body.classList.remove('exporting');button.disabled=false;button.textContent='Download as image';draw();}
   }
 
   document.getElementById('download-png').addEventListener('click',downloadPng);
