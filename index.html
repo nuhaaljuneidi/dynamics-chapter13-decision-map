@@ -109,8 +109,6 @@
 
   .node.relative{border-color:var(--purple);background:var(--purplebg)}
   .node.relative .t{color:var(--purple)}
-  .node.angular{border-color:var(--gold);background:var(--goldbg)}
-  .node.angular .t{color:#8a6d00}
   .node.straight-parent{border-color:var(--blue);background:var(--bluebg)}
   .node.straight-parent .t{color:var(--blue)}
   .node.straight{border-color:var(--blue);background:var(--bluebg)}
@@ -183,7 +181,6 @@
   <span class="sw"><i class="dot" style="background:var(--navy)"></i>General selection</span>
   <span class="sw"><i class="dot" style="background:var(--blue)"></i>Straight-line motion</span>
   <span class="sw"><i class="dot" style="background:var(--orange)"></i>Curvilinear motion</span>
-  <span class="sw"><i class="dot" style="background:var(--gold)"></i>Angular motion</span>
   <span class="sw"><i class="dot" style="background:var(--purple)"></i>Relative motion</span>
 </div>
 
@@ -225,19 +222,6 @@
         <summary>Details</summary>
         <div class="note">All absolute quantities are measured relative to the same reference frame.</div>
         <div class="note">Use this relation together with the coordinate representation appropriate for each point's motion.</div>
-      </details>
-    </div>
-
-    <div class="node l1 angular" data-depth="1" data-parent="n-root" id="n-angular">
-      <div class="t">Angular Motion of a Line — §13.5</div>
-      <div class="f">ω = dθ/dt</div>
-      <div class="f">α = dω/dt = d²θ/dt²</div>
-      <div class="f">α = ω dω/dθ</div>
-      <details>
-        <summary>Details</summary>
-        <div class="note">These relationships have the same mathematical form as the relationships for straight-line motion.</div>
-        <div class="note">ω and α are also used in polar/cylindrical motion, but Angular Motion is an independent section.</div>
-        <div class="note">Why it's here and not under "Motion of One Point": this section describes the rotation of a line (or a rotating unit vector), not the position of a point. It's introduced as groundwork for the polar/cylindrical coordinate formulas in §13.7, which do describe a point's motion.</div>
       </details>
     </div>
 
@@ -364,15 +348,21 @@
     <div class="node leafwide curvi" data-depth="3" data-parent="n-curvi" id="n-c3">
       <div class="t">Polar and Cylindrical Coordinates — §13.7</div>
       <div class="f"><span class="vec">r</span> = r <span class="vec">e</span><sub>r</sub></div>
-      <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rθ̇<span class="vec">e</span><sub>θ</sub></div>
-      <div class="f"><span class="vec">a</span> = (r̈−rθ̇²)<span class="vec">e</span><sub>r</sub> + (rθ̈+2ṙθ̇)<span class="vec">e</span><sub>θ</sub></div>
+      <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rω<span class="vec">e</span><sub>θ</sub></div>
+      <div class="f"><span class="vec">a</span> = (r̈−rω²)<span class="vec">e</span><sub>r</sub> + (rα+2ṙω)<span class="vec">e</span><sub>θ</sub></div>
       <details><summary>Details</summary>
-        <div class="note">−rθ̇² = centripetal term.&nbsp; 2ṙθ̇ = Coriolis term.</div>
+        <div class="note">−rω² = centripetal term.&nbsp; 2ṙω = Coriolis term.</div>
+        <hr>
+        <div class="method">Groundwork — Angular Motion of a Line (§13.5):</div>
+        <div class="f">ω = dθ/dt</div>
+        <div class="f">α = dω/dt = d²θ/dt²</div>
+        <div class="f">α = ω dω/dθ</div>
+        <div class="note">ω and α here are the angular velocity and angular acceleration of the line from the origin to the point — the rates used in the r, θ formulas above. §13.5 isn't a separate lesson in this course; it's the background math this section relies on.</div>
         <hr>
         <div class="method">Cylindrical extension:</div>
         <div class="f"><span class="vec">r</span> = r <span class="vec">e</span><sub>r</sub> + z <span class="vec">e</span><sub>z</sub></div>
-        <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rθ̇<span class="vec">e</span><sub>θ</sub> + ż<span class="vec">e</span><sub>z</sub></div>
-        <div class="f"><span class="vec">a</span> = (r̈−rθ̇²)<span class="vec">e</span><sub>r</sub> + (rθ̈+2ṙθ̇)<span class="vec">e</span><sub>θ</sub> + z̈<span class="vec">e</span><sub>z</sub></div>
+        <div class="f"><span class="vec">v</span> = ṙ<span class="vec">e</span><sub>r</sub> + rω<span class="vec">e</span><sub>θ</sub> + ż<span class="vec">e</span><sub>z</sub></div>
+        <div class="f"><span class="vec">a</span> = (r̈−rω²)<span class="vec">e</span><sub>r</sub> + (rα+2ṙω)<span class="vec">e</span><sub>θ</sub> + z̈<span class="vec">e</span><sub>z</sub></div>
         <div class="note">Useful when position or constraints are naturally expressed using radial distance r and angle θ — circular, orbital, and central-force motion.</div>
       </details>
     </div>
